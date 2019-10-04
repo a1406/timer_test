@@ -16,9 +16,9 @@
 
 typedef void (*timer_execute_func)(void *ud,void *arg);
 
-#define TIME_NEAR_SHIFT 8
+#define TIME_NEAR_SHIFT 12
 #define TIME_NEAR (1 << TIME_NEAR_SHIFT)
-#define TIME_LEVEL_SHIFT 6
+#define TIME_LEVEL_SHIFT 10
 #define TIME_LEVEL (1 << TIME_LEVEL_SHIFT)
 #define TIME_NEAR_MASK (TIME_NEAR-1)
 #define TIME_LEVEL_MASK (TIME_LEVEL-1)
@@ -40,7 +40,7 @@ struct link_list {
 
 struct timer {
 	struct link_list near[TIME_NEAR];
-	struct link_list t[4][TIME_LEVEL];
+	struct link_list t[2][TIME_LEVEL];
 	uint32_t time;
 	uint32_t starttime;
 	uint64_t current;
@@ -75,7 +75,7 @@ add_node(struct timer *T,struct timer_node *node) {
 	} else {
 		int i;
 		uint32_t mask=TIME_NEAR << TIME_LEVEL_SHIFT;
-		for (i=0;i<3;i++) {
+		for (i=0;i<1;i++) {
 			if ((time|(mask-1))==(current_time|(mask-1))) {
 				break;
 			}
@@ -110,7 +110,7 @@ timer_shift(struct timer *T) {
 	int mask = TIME_NEAR;
 	uint32_t ct = ++T->time;
 	if (ct == 0) {
-		move_list(T, 3, 0);
+		move_list(T, 1, 0);
 	} else {
 		uint32_t time = ct >> TIME_NEAR_SHIFT;
 		int i=0;
@@ -172,7 +172,7 @@ timer_create_timer() {
 		link_clear(&r->near[i]);
 	}
 
-	for (i=0;i<4;i++) {
+	for (i=0;i<2;i++) {
 		for (j=0;j<TIME_LEVEL;j++) {
 			link_clear(&r->t[i][j]);
 		}
