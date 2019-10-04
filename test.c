@@ -8,6 +8,8 @@ int main(int argc, char *argv[])
 	{
 		uint32_t start = 1 << (i * 10);
 		uint32_t end = i << (i * 10 + 12);
+		test_updatetime(start, end);
 	}
 	return 0;
 }
+

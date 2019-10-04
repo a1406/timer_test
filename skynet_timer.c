@@ -163,7 +163,7 @@ timer_execute(struct timer *T) {
 	}
 }
 
-static void 
+void 
 timer_update(struct timer *T) {
 	// try to dispatch timeout 0 (rare condition)
 	timer_execute(T);
@@ -267,6 +267,16 @@ skynet_updatetime(void) {
 		}
 	}
 }
+
+void
+test_updatetime(uint32_t start, uint32_t end) {
+	TI->time = start;
+	for (uint32_t i = start; i <= end; ++i)
+	{
+		timer_update(TI);
+	}
+}
+
 
 uint32_t
 skynet_starttime(void) {
