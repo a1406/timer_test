@@ -1,15 +1,15 @@
-#ifndef SKYNET_TIMER_H
-#define SKYNET_TIMER_H
+#ifndef MY_TIMER_H
+#define MY_TIMER_H
 
 #include <stdint.h>
 
 typedef void (*callback_func)(void *data);
-int skynet_timeout(int time, callback_func fun, void *data, int sz);
-void skynet_updatetime(void);
-uint32_t skynet_starttime(void);
-uint64_t skynet_thread_time(void);	// for profile, in micro second
+int my_timeout(int time, callback_func fun, void *data, int sz);
+void my_updatetime(void);
+uint32_t my_starttime(void);
+uint64_t my_thread_time(void);	// for profile, in micro second
 
-void skynet_timer_init(void);
+void my_timer_init(void);
 void test_updatetime(uint32_t num);
 
 

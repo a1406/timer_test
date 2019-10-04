@@ -1,10 +1,4 @@
-/* #include "skynet.h" */
-
-#include "./skynet_timer.h"
-/* #include "skynet_mq.h" */
-/* #include "skynet_server.h" */
-/* #include "skynet_handle.h" */
-/* #include "spinlock.h" */
+#include "./my_timer.h"
 
 #include <time.h>
 #include <assert.h>
@@ -139,14 +133,6 @@ dispatch_list(struct timer_node *current) {
 	do {
 		struct timer_event * event = (struct timer_event *)(current+1);
 		event->func(event->data);
-		/* struct skynet_message message; */
-		/* message.source = 0; */
-		/* message.session = event->session; */
-		/* message.data = NULL; */
-		/* message.sz = (size_t)PTYPE_RESPONSE << MESSAGE_TYPE_SHIFT; */
-
-		/* skynet_context_push(event->handle, &message); */
-		
 		struct timer_node * temp = current;
 		current=current->next;
 		free(temp);	
@@ -197,7 +183,7 @@ timer_create_timer() {
 	return r;
 }
 
-int skynet_timeout(int time, callback_func fun, void *data, int sz)
+int my_timeout(int time, callback_func fun, void *data, int sz)
 {
 	struct timer_event event;
 	event.func = fun;
@@ -241,7 +227,7 @@ gettime() {
 }
 
 void
-skynet_updatetime(void) {
+my_updatetime(void) {
 	uint64_t cp = gettime();
 	if(cp < TI->current_point) {
 		printf("error: time diff error: change from %lld to %lld", cp, TI->current_point);
@@ -267,17 +253,17 @@ test_updatetime(uint32_t num) {
 
 
 uint32_t
-skynet_starttime(void) {
+my_starttime(void) {
 	return TI->starttime;
 }
 
 uint64_t 
-skynet_now(void) {
+my_now(void) {
 	return TI->current;
 }
 
 void 
-skynet_timer_init(void) {
+my_timer_init(void) {
 	TI = timer_create_timer();
 	uint32_t current = 0;
 	systime(&TI->starttime, &current);
@@ -291,7 +277,7 @@ skynet_timer_init(void) {
 #define MICROSEC 1000000
 
 uint64_t
-skynet_thread_time(void) {
+my_thread_time(void) {
 #if  !defined(__APPLE__) || defined(AVAILABLE_MAC_OS_X_VERSION_10_12_AND_LATER)
 	struct timespec ti;
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ti);
