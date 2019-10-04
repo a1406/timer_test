@@ -258,9 +258,8 @@ skynet_updatetime(void) {
 }
 
 void
-test_updatetime(uint32_t start, uint32_t end) {
-	TI->time = start;
-	for (uint32_t i = start; i <= end; ++i)
+test_updatetime(uint32_t num) {
+	for (uint32_t i = 0; i < num; ++i)
 	{
 		timer_update(TI);
 	}
