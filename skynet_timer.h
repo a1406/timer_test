@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-int skynet_timeout(uint32_t handle, int time, int session);
+typedef void (*callback_func)(void *data);
+int skynet_timeout(int time, callback_func fun, void *data, int sz);
 void skynet_updatetime(void);
 uint32_t skynet_starttime(void);
 uint64_t skynet_thread_time(void);	// for profile, in micro second

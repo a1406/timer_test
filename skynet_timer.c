@@ -30,8 +30,8 @@ typedef void (*timer_execute_func)(void *ud,void *arg);
 #define TIME_LEVEL_MASK (TIME_LEVEL-1)
 
 struct timer_event {
-	uint32_t handle;
-	int session;
+	callback_func func;
+	void *data;
 };
 
 struct timer_node {
@@ -137,7 +137,8 @@ timer_shift(struct timer *T) {
 static inline void
 dispatch_list(struct timer_node *current) {
 	do {
-		/* struct timer_event * event = (struct timer_event *)(current+1); */
+		struct timer_event * event = (struct timer_event *)(current+1);
+		event->func(event->data);
 		/* struct skynet_message message; */
 		/* message.source = 0; */
 		/* message.session = event->session; */
@@ -196,26 +197,14 @@ timer_create_timer() {
 	return r;
 }
 
-int
-skynet_timeout(uint32_t handle, int time, int session) {
-	if (time <= 0) {
-		/* struct skynet_message message; */
-		/* message.source = 0; */
-		/* message.session = session; */
-		/* message.data = NULL; */
-		/* message.sz = (size_t)PTYPE_RESPONSE << MESSAGE_TYPE_SHIFT; */
+int skynet_timeout(int time, callback_func fun, void *data, int sz)
+{
+	struct timer_event event;
+	event.func = fun;
+	event.data = data;
+	timer_add(TI, &event, sizeof(event) + sz, time);
 
-		/* if (skynet_context_push(handle, &message)) { */
-		/* 	return -1; */
-		/* } */
-	} else {
-		struct timer_event event;
-		event.handle = handle;
-		event.session = session;
-		timer_add(TI, &event, sizeof(event), time);
-	}
-
-	return session;
+	return 0;
 }
 
 // centisecond: 1/100 second
