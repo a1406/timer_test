@@ -1,11 +1,18 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "./skynet_timer.h"
 
+static uint64_t check_index = 0;
 static void on_timer(void *data)
 {
 	uint64_t d = (uint64_t)data;
-	printf("%s: d = %lu\n", __FUNCTION__, d);
+	if (d != check_index)
+	{
+		printf("%s: err, d = %lu, check = %lu\n", __FUNCTION__, d, check_index);
+		exit(0);
+	}
+	++check_index;
 }
 
 int main(int argc, char *argv[])
@@ -17,19 +24,25 @@ int main(int argc, char *argv[])
 	/* { */
 	/* 	uint32_t start = 1 << (i * 10); */
 	/* 	uint32_t end = i << (i * 10 + 12); */
-	/* 	for (uint32_t j = start; j <= end; ++j) */
+	/* 	for (uint64_t j = start; j <= end; ++j) */
 	/* 	{ */
-	/* 		skynet_timeout(j, on_timer, &j, sizeof(uint32_t)); */
+	/* 		skynet_timeout(j, on_timer, (void *)j, sizeof(uint64_t)); */
 	/* 	} */
 	/* } */
 
-	for (uint64_t j = 0; j <= 100000; ++j)
+	for (uint64_t j = 0; j <= 0xffff; ++j)
 	{
 		skynet_timeout(j, on_timer, (void *)j, sizeof(uint64_t));
 	}
 
 
-	test_updatetime(10);
+	/* for (uint64_t j = 0; j <= 100000; ++j) */
+	/* { */
+	/* 	skynet_timeout(j, on_timer, (void *)j, sizeof(uint64_t)); */
+	/* } */
+
+
+	test_updatetime(0xffffffff);
 	return 0;
 }
 
