@@ -1,15 +1,16 @@
-#include "skynet.h"
+/* #include "skynet.h" */
 
-#include "skynet_timer.h"
-#include "skynet_mq.h"
-#include "skynet_server.h"
-#include "skynet_handle.h"
-#include "spinlock.h"
+#include "./skynet_timer.h"
+/* #include "skynet_mq.h" */
+/* #include "skynet_server.h" */
+/* #include "skynet_handle.h" */
+/* #include "spinlock.h" */
 
 #include <time.h>
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdint.h>
 
 #if defined(__APPLE__)
@@ -46,7 +47,6 @@ struct link_list {
 struct timer {
 	struct link_list near[TIME_NEAR];
 	struct link_list t[4][TIME_LEVEL];
-	struct spinlock lock;
 	uint32_t time;
 	uint32_t starttime;
 	uint64_t current;
@@ -94,15 +94,11 @@ add_node(struct timer *T,struct timer_node *node) {
 
 static void
 timer_add(struct timer *T,void *arg,size_t sz,int time) {
-	struct timer_node *node = (struct timer_node *)skynet_malloc(sizeof(*node)+sz);
-	memcpy(node+1,arg,sz);
+	struct timer_node *node = (struct timer_node *)malloc(sizeof(*node)+sz);
+	memcpy(node + 1, arg, sz);
 
-	SPIN_LOCK(T);
-
-		node->expire=time+T->time;
-		add_node(T,node);
-
-	SPIN_UNLOCK(T);
+	node->expire = time + T->time;
+	add_node(T, node);
 }
 
 static void
@@ -141,18 +137,18 @@ timer_shift(struct timer *T) {
 static inline void
 dispatch_list(struct timer_node *current) {
 	do {
-		struct timer_event * event = (struct timer_event *)(current+1);
-		struct skynet_message message;
-		message.source = 0;
-		message.session = event->session;
-		message.data = NULL;
-		message.sz = (size_t)PTYPE_RESPONSE << MESSAGE_TYPE_SHIFT;
+		/* struct timer_event * event = (struct timer_event *)(current+1); */
+		/* struct skynet_message message; */
+		/* message.source = 0; */
+		/* message.session = event->session; */
+		/* message.data = NULL; */
+		/* message.sz = (size_t)PTYPE_RESPONSE << MESSAGE_TYPE_SHIFT; */
 
-		skynet_context_push(event->handle, &message);
+		/* skynet_context_push(event->handle, &message); */
 		
 		struct timer_node * temp = current;
 		current=current->next;
-		skynet_free(temp);	
+		free(temp);	
 	} while (current);
 }
 
@@ -162,17 +158,13 @@ timer_execute(struct timer *T) {
 	
 	while (T->near[idx].head.next) {
 		struct timer_node *current = link_clear(&T->near[idx]);
-		SPIN_UNLOCK(T);
 		// dispatch_list don't need lock T
 		dispatch_list(current);
-		SPIN_LOCK(T);
 	}
 }
 
 static void 
 timer_update(struct timer *T) {
-	SPIN_LOCK(T);
-
 	// try to dispatch timeout 0 (rare condition)
 	timer_execute(T);
 
@@ -180,13 +172,11 @@ timer_update(struct timer *T) {
 	timer_shift(T);
 
 	timer_execute(T);
-
-	SPIN_UNLOCK(T);
 }
 
 static struct timer *
 timer_create_timer() {
-	struct timer *r=(struct timer *)skynet_malloc(sizeof(struct timer));
+	struct timer *r=(struct timer *)malloc(sizeof(struct timer));
 	memset(r,0,sizeof(*r));
 
 	int i,j;
@@ -201,8 +191,6 @@ timer_create_timer() {
 		}
 	}
 
-	SPIN_INIT(r)
-
 	r->current = 0;
 
 	return r;
@@ -211,15 +199,15 @@ timer_create_timer() {
 int
 skynet_timeout(uint32_t handle, int time, int session) {
 	if (time <= 0) {
-		struct skynet_message message;
-		message.source = 0;
-		message.session = session;
-		message.data = NULL;
-		message.sz = (size_t)PTYPE_RESPONSE << MESSAGE_TYPE_SHIFT;
+		/* struct skynet_message message; */
+		/* message.source = 0; */
+		/* message.session = session; */
+		/* message.data = NULL; */
+		/* message.sz = (size_t)PTYPE_RESPONSE << MESSAGE_TYPE_SHIFT; */
 
-		if (skynet_context_push(handle, &message)) {
-			return -1;
-		}
+		/* if (skynet_context_push(handle, &message)) { */
+		/* 	return -1; */
+		/* } */
 	} else {
 		struct timer_event event;
 		event.handle = handle;
@@ -267,7 +255,7 @@ void
 skynet_updatetime(void) {
 	uint64_t cp = gettime();
 	if(cp < TI->current_point) {
-		skynet_error(NULL, "time diff error: change from %lld to %lld", cp, TI->current_point);
+		printf("error: time diff error: change from %lld to %lld", cp, TI->current_point);
 		TI->current_point = cp;
 	} else if (cp != TI->current_point) {
 		uint32_t diff = (uint32_t)(cp - TI->current_point);
